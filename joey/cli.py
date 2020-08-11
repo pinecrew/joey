@@ -23,7 +23,7 @@ def app_migrate():
     print('app:migrate')
 
 
-if __name__ == '__main__':
+def main(argv=None):
     # supported functions
     params = [
         ('init', 'create project skeleton', True, app_init),
@@ -43,7 +43,7 @@ if __name__ == '__main__':
             s_parse.add_argument(dest='argument', nargs='?', type=str, default='', help='command parameter')
         s_parse.set_defaults(func=function)
 
-    option = parser.parse_args()
+    option = parser.parse_args(argv)
     # if args has func, then execute this function
     if hasattr(option, 'func'):
         # with arguments?
