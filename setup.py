@@ -19,7 +19,6 @@ setup(
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
-        "Framework :: Joey",
         "Intended Audience :: Developers",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
