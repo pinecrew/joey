@@ -6,8 +6,8 @@ from starlette.datastructures import MutableHeaders, Secret
 from starlette.requests import HTTPConnection
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from .models import Session
-from utils import timezone
+from joey.middleware.session.models import Session
+from joey.utils import timezone
 
 
 class SessionMiddleware:

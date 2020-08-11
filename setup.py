@@ -10,7 +10,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="joey",
-    version="0.1.0",
+    version="0.1.1",
     description="Async web framework on top of fastapi and orm",
     long_description=long_description,
     long_description_content_type="text/markdown",
