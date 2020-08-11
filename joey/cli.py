@@ -1,5 +1,6 @@
 from pathlib import Path
 import argparse
+import subprocess
 
 
 def app_init(name):
@@ -12,7 +13,7 @@ def app_add(name):
 
 
 def app_run():
-    print('app:run')
+    subprocess.call(['uvicorn', '--reload', 'asgi:app'])
 
 
 def app_revise(label):
