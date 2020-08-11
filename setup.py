@@ -10,7 +10,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="joey",
-    version="0.1.1",
+    version="0.2.0",
     description="Async web framework on top of fastapi and orm",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,6 +33,9 @@ setup(
     python_requires=">=3.8, <4",
     install_requires=["alembic==1.4.2", "fastapi==0.61.0", "orm==0.1.5", "pytz==2020.1",],
     extras_require={"dev": ["black", "pylint",]},
+    entry_points = {
+        'console_scripts': ['joey=joey.cli:main'],
+    },
     dependency_links=[],
     project_urls={},
 )
