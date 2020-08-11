@@ -2,8 +2,8 @@ from uuid import uuid4
 
 import orm
 
-from utils import timezone
-from db import Model
+from joey.utils import timezone
+from joey.db import Model
 
 
 class Session(Model):
