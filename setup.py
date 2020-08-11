@@ -29,7 +29,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.8",
     ],
-    keywords="sample setuptools development",
+    keywords="joey web framework orm fastapi",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     python_requires=">=3.8, <4",
     install_requires=["alembic==1.4.2", "fastapi==0.61.0", "orm==0.1.5", "pytz==2020.1",],
