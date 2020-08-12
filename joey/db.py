@@ -43,6 +43,7 @@ class Model(orm.Model, metaclass=BaseMetaclass):
     DoesNotExist = NoMatch
     MultipleObjectsReturned = MultipleMatches
 
+
 def init(settings):
     import databases
     import sqlalchemy
