@@ -14,14 +14,15 @@ def from_file(filename, **kwargs):
 
 def app_init(name=None):
     app_directory = Path(name) if name else Path('.')
+    app_name = name if name else app_directory.cwd().name
     files = {
         'alembic.ini': from_file('templates/alembic.template'),
         'asgi.py': from_file('templates/asgi.template'),
         'settings/__init__.py': from_file('templates/settings_init.template'),
-        'settings/common.py': from_file('templates/settings_common.template', app_name=name),
-        'settings/development.py':
-            from_file('templates/settings_development.template',
-                secret_key=uuid.uuid4().hex, cookie_secret=uuid.uuid4().hex),
+        'settings/common.py': from_file('templates/settings_common.template', app_name=app_name),
+        'settings/development.py': from_file(
+            'templates/settings_development.template', secret_key=uuid.uuid4().hex, cookie_secret=uuid.uuid4().hex
+        ),
         'migrations/versions/.empty': '',
         'migrations/env.py': from_file('templates/migrations_env.template'),
         'migrations/script.py.mako': from_file('templates/migrations_script.template'),
@@ -29,8 +30,9 @@ def app_init(name=None):
     for filename, contents in files.items():
         filepath = app_directory / filename
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        with filepath.open('w', encoding ='utf-8') as f:
+        with filepath.open('w', encoding='utf-8') as f:
             f.write(contents)
+    print(f'[info] create project with name {app_name}')
 
 
 def app_add(name):
@@ -43,8 +45,9 @@ def app_add(name):
     for filename, contents in files.items():
         filepath = app_directory / filename
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        with filepath.open('w', encoding ='utf-8') as f:
+        with filepath.open('w', encoding='utf-8') as f:
             f.write(contents)
+    print(f'[info] add application {name}')
 
 
 def app_run():
