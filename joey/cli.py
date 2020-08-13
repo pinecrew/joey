@@ -4,50 +4,46 @@ import argparse
 import uuid
 
 
-def from_file(filename, **kwargs):
-    joey_wd = Path(__file__).parent
-    text = (joey_wd / filename).open().read()
-    if len(kwargs) > 0:
-        return text.format(**kwargs)
+def render(path, **kwargs):
+    text = path.open().read()
+    if kwargs:
+        try:
+            return text.format(**kwargs)
+        except:
+            pass
     return text
 
 
 def app_init(name=None):
     app_directory = Path(name) if name else Path('.')
-    app_name = name if name else app_directory.cwd().name
-    files = {
-        'alembic.ini': from_file('templates/alembic.template'),
-        'asgi.py': from_file('templates/asgi.template'),
-        'settings/__init__.py': from_file('templates/settings_init.template'),
-        'settings/common.py': from_file('templates/settings_common.template', app_name=app_name),
-        'settings/development.py': from_file(
-            'templates/settings_development.template', secret_key=uuid.uuid4().hex, cookie_secret=uuid.uuid4().hex
-        ),
-        'migrations/versions/.empty': '',
-        'migrations/env.py': from_file('templates/migrations_env.template'),
-        'migrations/script.py.mako': from_file('templates/migrations_script.template'),
+    variables = {
+        'app_name': name if name else app_directory.cwd().name,
+        'secret_key': uuid.uuid4().hex,
+        'cookie_secret': uuid.uuid4().hex,
     }
-    for filename, contents in files.items():
-        filepath = app_directory / filename
+    templates_dir = Path(__file__).parent / 'templates' / 'project'
+    for path in templates_dir.glob('**/*'):
+        if '__pycache__' in str(path) or path.is_dir():
+            continue
+        filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
+        print(filepath)
         with filepath.open('w', encoding='utf-8') as f:
-            f.write(contents)
-    print(f'[info] create project with name {app_name}')
+            f.write(render(path, **variables))
+    print('Create project {app_name}'.format(**variables))
 
 
 def app_add(name):
     app_directory = Path(name)
-    files = {
-        '__init__.py': '',
-        'models.py': from_file('templates/app.template'),
-        'routes.py': from_file('templates/routes.template'),
-    }
-    for filename, contents in files.items():
-        filepath = app_directory / filename
+    templates_dir = Path(__file__).parent / 'templates' / 'app'
+    for path in templates_dir.glob('**/*'):
+        if '__pycache__' in str(path) or path.is_dir():
+            continue
+        filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
         with filepath.open('w', encoding='utf-8') as f:
-            f.write(contents)
-    print(f'[info] add application {name}')
+            f.write(render(path))
+    print(f'Add application {name}')
 
 
 def app_run():

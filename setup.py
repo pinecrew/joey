@@ -38,5 +38,6 @@ setup(
         'console_scripts': ['joey=joey.cli:main'],
     },
     dependency_links=[],
+    include_package_data=True,
     project_urls={},
 )
