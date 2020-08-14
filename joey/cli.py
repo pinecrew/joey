@@ -2,16 +2,25 @@ from pathlib import Path
 import subprocess
 import argparse
 import uuid
+import sys
 
 
-def render(path, **kwargs):
+def render(path, format_render=False, **kwargs):
     text = path.open().read()
-    if kwargs:
+    if kwargs and format_render:
         try:
             return text.format(**kwargs)
-        except:
-            pass
+        except KeyError as e:
+            for key in e.args:
+                print(f'[error]: unknown render key `{key}` at file {path.name}', file=sys.stderr)
+            exit(-1)
     return text
+
+
+def is_renderable_template(filepath):
+    if filepath.suffix == '.pyt':
+        return True, filepath.parent / (filepath.stem + '.py')
+    return False, filepath
 
 
 def app_init(name=None):
@@ -22,28 +31,32 @@ def app_init(name=None):
         'cookie_secret': uuid.uuid4().hex,
     }
     templates_dir = Path(__file__).parent / 'templates' / 'project'
+    print('Start project creation')
     for path in templates_dir.glob('**/*'):
         if '__pycache__' in str(path) or path.is_dir():
             continue
         filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
-        print(filepath)
+        has_variables, filepath = is_renderable_template(filepath)
+        print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
-            f.write(render(path, **variables))
-    print('Create project {app_name}'.format(**variables))
+            f.write(render(path, has_variables, **variables))
+    print('Project `{app_name}` successfully created'.format(**variables))
 
 
 def app_add(name):
     app_directory = Path(name)
     templates_dir = Path(__file__).parent / 'templates' / 'app'
+    print('Start application creation')
     for path in templates_dir.glob('**/*'):
         if '__pycache__' in str(path) or path.is_dir():
             continue
         filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
+        print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
             f.write(render(path))
-    print(f'Add application {name}')
+    print(f'Application `{name}` successfully added')
 
 
 def app_run():
