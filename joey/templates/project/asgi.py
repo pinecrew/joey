@@ -12,11 +12,13 @@ db.init(settings)
 app = FastAPI()
 
 
-def router(module_name):
-    return import_module(module_name).router
+routes = {
+#    'application': {'prefix': '/application', 'tags': ['application']},
+}
 
+def router(application_name):
+    return import_module(application_name + '.routes').router
 
-# Specify routers below
+for application_name, kwargs in routes:
+    app.include_router(router(application_name), **kwargs)
 
-# for example:
-# app.include_router(router('application.routes'), prefix='/application' , tags=['application'])
