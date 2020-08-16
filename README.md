@@ -45,9 +45,12 @@ Joey will add the following files in a separate folder
 Now you can register a new application in the project settings (`settings/common.py`)
 ```py
 APPLICATIONS: _typing.List[str] = ['hello']
+ROUTES: _typing.Dict[str, dict] = {
+    'hello': {'prefix': '/hello', 'tags': ['hello_tags']}
+}
 ```
 
-Теперь объявим модель в файле `hello/models.py`
+Now implement model in file  `hello/models.py`
 ```py
 class Item(Model):
     id = orm.Integer(primary_key=True)
@@ -69,7 +72,7 @@ class Item(BaseModel):
 
 router = APIRouter()
 
-@router.post('/{id}')
+@router.post('/{id}', response_model=Item)
 async def item(id: int) -> Item:
     try:
         return await ItemDB.objects.get(id=id)
