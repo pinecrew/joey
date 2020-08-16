@@ -5,6 +5,7 @@ import uuid
 import sys
 from mako.template import Template
 
+
 def render(path, format_render=False, **kwargs):
     text = path.open().read()
     if kwargs and format_render:
@@ -61,7 +62,12 @@ def app_add(name):
 
 
 def app_run():
-    subprocess.call(['uvicorn', '--reload', 'asgi:app'])
+    try:
+        subprocess.call(['uvicorn', '--reload', 'asgi:app'])
+    except FileNotFoundError:
+        print('Uvicorn is not installed. Run asgi:app with your favorite async server.')
+    except KeyboardInterrupt:
+        pass
 
 
 def app_revise(label='auto'):
