@@ -3,13 +3,14 @@ import subprocess
 import argparse
 import uuid
 import sys
-
+from mako.template import Template
 
 def render(path, format_render=False, **kwargs):
     text = path.open().read()
     if kwargs and format_render:
         try:
-            return text.format(**kwargs)
+            template = Template(text)
+            return template.render(**kwargs)
         except KeyError as e:
             for key in e.args:
                 print(f'[error]: unknown render key `{key}` at file {path.name}', file=sys.stderr)
