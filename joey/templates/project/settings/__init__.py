@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from pydantic import BaseSettings
 
@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     COOKIE_SECRET: str
     SQLALCHEMY_DATABASE_URI: str
     APPLICATIONS: List[str]
+    ROUTES: Dict[str, dict]
 
 
 try:
