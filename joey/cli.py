@@ -37,31 +37,39 @@ def app_init(name=None):
         'cookie_secret': uuid.uuid4().hex,
     }
     templates_dir = Path(__file__).parent / 'templates' / 'project'
+
     print('Start project creation')
     for path in templates_dir.glob('**/*'):
         if '__pycache__' in str(path) or path.is_dir():
             continue
+
         filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
+
         has_variables, filepath = is_renderable_template(filepath)
         print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
             f.write(render(path, has_variables, **variables))
+
     print('Project `{app_name}` successfully created'.format(**variables))
 
 
 def app_add(name):
     app_directory = Path(name)
     templates_dir = Path(__file__).parent / 'templates' / 'app'
+
     print('Start application creation')
     for path in templates_dir.glob('**/*'):
         if '__pycache__' in str(path) or path.is_dir():
             continue
+
         filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
+
         print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
             f.write(render(path))
+
     print(f'Application `{name}` successfully added')
 
 
