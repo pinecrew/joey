@@ -9,5 +9,5 @@ APPLICATIONS: _typing.List[str] = [
 ]
 
 ROUTES: _typing.Dict[str, dict] = {
-#    'application': {'prefix': '/application', 'tags': ['application']},
+    # 'application': {'prefix': '/application', 'tags': ['application']},
 }
