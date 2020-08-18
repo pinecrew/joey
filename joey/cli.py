@@ -16,9 +16,10 @@ def render(path, format_render=False, **kwargs):
             return template.render(**kwargs)
         except:
             traceback = RichTraceback()
+            print(f'[error]: template rendering error at file `{path.name}`')
             for (filename, lineno, function, line) in traceback.traceback:
-                print(f'file {filename}, line {lineno}, in {function}\n{line}\n')
-            print(f'{str(traceback.error.__class__.__name__)}: {traceback.error}')
+                print(f'  file {filename}, line {lineno}, in {function}\n    {line}')
+            print(f'  {str(traceback.error.__class__.__name__)}: {traceback.error}')
             exit(-1)
     return text
 
