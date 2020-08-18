@@ -3,11 +3,9 @@ import typing as _typing
 
 PROJECT_NAME: str = '${app_name}'
 APPLICATIONS: _typing.List[str] = [
-    # joey middleware
-    # 'joey.middleware.session',
-    # please register application here
+    # joey_app_autoregister_flag; PLEASE DO NOT DELETE THIS LINE
 ]
 
 ROUTES: _typing.Dict[str, dict] = {
-    # 'application': {'prefix': '/application', 'tags': ['application']},
+    # joey_route_autoregister_flag; PLEASE DO NOT DELETE THIS LINE
 }

@@ -8,6 +8,13 @@ from mako.exceptions import RichTraceback
 from mako.template import Template
 
 
+DEF_TAB_SIZE = 4
+
+
+def to_pretty_route(name, tab):
+    return tab + f"'{name}': " + "{'prefix': " + f"'/{name}', 'tags': ['{name}']" + '},\n'
+
+
 def render(path, format_render=False, **kwargs):
     text = path.open().read()
     if kwargs and format_render:
@@ -70,6 +77,39 @@ def app_add(name):
         print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
             f.write(render(path))
+
+    route_flag_name = '# joey_route_autoregister_flag'
+    app_flag_name = '# joey_app_autoregister_flag'
+    application_index, routes_index = None, None
+    app_tab_size, route_tab_size = -1, -1
+
+    config_file = Path('.') / 'settings' / 'common.py'
+    config_data = config_file.open().readlines()
+
+    for index, line in enumerate(config_data):
+        if app_flag_name in line:
+            application_index = index
+            app_tab_size = line.find(app_flag_name)
+        if route_flag_name in line:
+            routes_index = index
+            route_tab_size = line.find(route_flag_name)
+
+    atab = ' ' * app_tab_size if app_tab_size > 0 else ' ' * DEF_TAB_SIZE
+    rtab = ' ' * route_tab_size if route_tab_size > 0 else ' ' * DEF_TAB_SIZE
+
+    if application_index and routes_index:
+        print(f'Autoregister application and route in `{config_file}`')
+        route_text = to_pretty_route(name, rtab)
+        if application_index < routes_index:
+            config_data.insert(application_index, f"{atab}'{name}',\n")
+            config_data.insert(routes_index + 1, route_text)
+        else:
+            config_data.insert(routes_index, route_text)
+            config_data.insert(application_index + 1, f"{atab}'{name}',")
+
+        with config_file.open('w') as f:
+            result = ''.join(config_data)
+            f.write(result)
 
     print(f'Application `{name}` successfully added')
 
