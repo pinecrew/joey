@@ -3,6 +3,8 @@ import subprocess
 import argparse
 import uuid
 import sys
+
+from mako.exceptions import RichTraceback
 from mako.template import Template
 
 
@@ -12,9 +14,11 @@ def render(path, format_render=False, **kwargs):
         try:
             template = Template(text)
             return template.render(**kwargs)
-        except KeyError as e:
-            for key in e.args:
-                print(f'[error]: unknown render key `{key}` at file {path.name}', file=sys.stderr)
+        except:
+            traceback = RichTraceback()
+            for (filename, lineno, function, line) in traceback.traceback:
+                print(f'file {filename}, line {lineno}, in {function}\n{line}\n')
+            print(f'{str(traceback.error.__class__.__name__)}: {traceback.error}')
             exit(-1)
     return text
 
