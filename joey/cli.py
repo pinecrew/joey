@@ -3,6 +3,8 @@ import subprocess
 import argparse
 import uuid
 import sys
+
+from mako.exceptions import RichTraceback
 from mako.template import Template
 
 
@@ -12,9 +14,12 @@ def render(path, format_render=False, **kwargs):
         try:
             template = Template(text)
             return template.render(**kwargs)
-        except KeyError as e:
-            for key in e.args:
-                print(f'[error]: unknown render key `{key}` at file {path.name}', file=sys.stderr)
+        except:
+            traceback = RichTraceback()
+            print(f'[error]: template rendering error at file `{path.name}`')
+            for (filename, lineno, function, line) in traceback.traceback:
+                print(f'  file {filename}, line {lineno}, in {function}\n    {line}')
+            print(f'  {str(traceback.error.__class__.__name__)}: {traceback.error}')
             exit(-1)
     return text
 
@@ -33,31 +38,39 @@ def app_init(name=None):
         'cookie_secret': uuid.uuid4().hex,
     }
     templates_dir = Path(__file__).parent / 'templates' / 'project'
+
     print('Start project creation')
     for path in templates_dir.glob('**/*'):
         if '__pycache__' in str(path) or path.is_dir():
             continue
+
         filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
+
         has_variables, filepath = is_renderable_template(filepath)
         print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
             f.write(render(path, has_variables, **variables))
+
     print('Project `{app_name}` successfully created'.format(**variables))
 
 
 def app_add(name):
     app_directory = Path(name)
     templates_dir = Path(__file__).parent / 'templates' / 'app'
+
     print('Start application creation')
     for path in templates_dir.glob('**/*'):
         if '__pycache__' in str(path) or path.is_dir():
             continue
+
         filepath = app_directory / path.relative_to(templates_dir)
         filepath.parent.mkdir(parents=True, exist_ok=True)
+
         print(f' - {filepath}')
         with filepath.open('w', encoding='utf-8') as f:
             f.write(render(path))
+
     print(f'Application `{name}` successfully added')
 
 
