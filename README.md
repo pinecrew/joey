@@ -42,11 +42,15 @@ Joey will add the following files in a separate folder
     └── routes.py
 ```
 
-Now you can register a new application in the project settings (`settings/common.py`)
+And register your app and route in project settings (`settings/common.py`)
 ```py
-APPLICATIONS: _typing.List[str] = ['hello']
+APPLICATIONS: _typing.List[str] = [
+    'hello',
+    # joey_app_autoregister_flag; PLEASE DO NOT DELETE THIS LINE
+]
 ROUTES: _typing.Dict[str, dict] = {
-    'hello': {'prefix': '/hello', 'tags': ['hello_tags']}
+    'hello': {'prefix': '/hello', 'tags': ['hello']},
+    # joey_route_autoregister_flag; PLEASE DO NOT DELETE THIS LINE
 }
 ```
 
