@@ -8,9 +8,8 @@ from mako.exceptions import RichTraceback
 from mako.template import Template
 
 
-def render(path, format_render=False, **kwargs):
-    text = path.open().read()
-    if kwargs and format_render:
+def render(text, **kwargs):
+    if kwargs:
         try:
             template = Template(text)
             return template.render(**kwargs)
@@ -24,10 +23,30 @@ def render(path, format_render=False, **kwargs):
     return text
 
 
-def is_renderable_template(filepath):
-    if filepath.suffix == '.pyt':
-        return True, filepath.parent / (filepath.stem + '.py')
-    return False, filepath
+def _is_renderable_template(path):
+    return path.suffix == '.pyt'
+
+
+def _redered_path(template_path):
+    return template_path.with_suffix('.py')
+
+
+def copy_directory_structure(src, dst, context):
+    for path in src.glob('**/*'):
+        if path.is_dir() or path.suffix == '.pyc':
+            continue
+
+        text = path.open().read()
+        if _is_renderable_template(path):
+            text = render(text, **context)
+            path = _redered_path(path)
+
+        filepath = dst / path.relative_to(src)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+
+        print(f' - {filepath}')
+        with filepath.open('w') as f:
+            f.write(text)
 
 
 def register_app(name, config_file):
@@ -36,8 +55,7 @@ def register_app(name, config_file):
     application_index, routes_index = None, None
     app_tab, route_tab = '', ''
 
-    to_pretty_route = lambda name, tab: \
-        tab + f"'{name}': " + "{'prefix': " + f"'/{name}', 'tags': ['{name}']" + '},\n'
+    to_pretty_route = lambda name, tab: tab + f"'{name}': " + "{'prefix': " + f"'/{name}', 'tags': ['{name}']" + '},\n'
     to_pretty_app = lambda name, tab: f"{tab}'{name}',\n"
     generate_tabs = lambda tab_size: ' ' * tab_size if tab_size > 0 else ' ' * 4
 
@@ -64,7 +82,7 @@ def register_app(name, config_file):
         with config_file.open('w') as f:
             result = ''.join(config_data)
             f.write(result)
-            
+
         print(f'Autoregister application and route in `{config_file}`')
 
 
@@ -78,18 +96,7 @@ def app_init(name=None):
     templates_dir = Path(__file__).parent / 'templates' / 'project'
 
     print('Start project creation')
-    for path in templates_dir.glob('**/*'):
-        if '__pycache__' in str(path) or path.is_dir():
-            continue
-
-        filepath = app_directory / path.relative_to(templates_dir)
-        filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        has_variables, filepath = is_renderable_template(filepath)
-        print(f' - {filepath}')
-        with filepath.open('w', encoding='utf-8') as f:
-            f.write(render(path, has_variables, **variables))
-
+    copy_directory_structure(templates_dir, app_directory, variables)
     print('Project `{app_name}` successfully created'.format(**variables))
 
 
@@ -98,21 +105,10 @@ def app_add(name):
     templates_dir = Path(__file__).parent / 'templates' / 'app'
 
     print('Start application creation')
-    for path in templates_dir.glob('**/*'):
-        if '__pycache__' in str(path) or path.is_dir():
-            continue
-
-        filepath = app_directory / path.relative_to(templates_dir)
-        filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        print(f' - {filepath}')
-        with filepath.open('w', encoding='utf-8') as f:
-            f.write(render(path))
-
+    copy_directory_structure(templates_dir, app_directory, {})
     config_file = Path('.') / 'settings' / 'common.py'
     if config_file.exists():
         register_app(name, config_file)
-
     print(f'Application `{name}` successfully added')
 
 
