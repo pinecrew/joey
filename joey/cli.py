@@ -100,15 +100,18 @@ def app_init(name=None):
     print('Project `{app_name}` successfully created'.format(**variables))
 
 
-def app_add(name):
+def app_add(name, autoregister=False):
     app_directory = Path(name)
     templates_dir = Path(__file__).parent / 'templates' / 'app'
 
     print('Start application creation')
     copy_directory_structure(templates_dir, app_directory, {})
-    config_file = Path('.') / 'settings' / 'common.py'
-    if config_file.exists():
-        register_app(name, config_file)
+
+    if autoregister:
+        config_file = Path('.') / 'settings' / 'common.py'
+        if config_file.exists():
+            register_app(name, config_file)
+
     print(f'Application `{name}` successfully added')
 
 
@@ -130,33 +133,33 @@ def app_migrate():
 
 
 def main(argv=None):
-    # supported functions
-    params = [
-        ('init', 'create project skeleton', True, app_init),
-        ('add', 'add project application', True, app_add),
-        ('run', 'run developer server', False, app_run),
-        ('revise', 'create migration', True, app_revise),
-        ('migrate', 'apply migration', False, app_migrate),
-    ]
-
     parser = argparse.ArgumentParser(description='Async web framework on top of fastapi and orm')
-
-    # create subparsers
     subparser = parser.add_subparsers()
-    for name, help_info, has_args, function in params:
-        s_parse = subparser.add_parser(name, help=help_info)
-        if has_args:
-            s_parse.add_argument(dest='argument', nargs='?', type=str, default='', help='command parameter')
-        s_parse.set_defaults(func=function)
+
+    p_init = subparser.add_parser('init', help='create project skeleton')
+    p_init.add_argument(dest='name', type=str, help='project name')
+    p_init.set_defaults(func=app_init)
+
+    p_add = subparser.add_parser('add', help='add project application')
+    p_add.add_argument('-a', dest='autoregister', action='store_true', default=False, help='autoregister application')
+    p_add.add_argument(dest='name', type=str, help='application name')
+    p_add.set_defaults(func=app_add)
+
+    p_run = subparser.add_parser('run', help='run developer server')
+    p_run.set_defaults(func=app_run)
+
+    p_revise = subparser.add_parser('revise', help='create migration')
+    p_revise.add_argument(dest='label', type=str, help='migration label')
+    p_revise.set_defaults(func=app_revise)
+
+    p_migrate = subparser.add_parser('migrate', help='apply migration')
+    p_migrate.set_defaults(func=app_migrate)
 
     option = parser.parse_args(argv)
-    # if args has func, then execute this function
     if hasattr(option, 'func'):
-        # with arguments?
-        if hasattr(option, 'argument') and option.argument:
-            option.func(option.argument)
-        else:
-            option.func()
+        # TODO: rewrite this shitcode
+        function = option.func
+        option.__dict__.pop('func')
+        function(**option.__dict__)
     else:
-        # else print app help
         parser.print_help()
