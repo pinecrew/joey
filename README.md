@@ -24,13 +24,16 @@ Joey will create the following project structure
 │   └── versions
 └── settings
     ├── common.py
+    ├── common.yml
     ├── development.py
     └── __init__.py
 ```
 
 Let's add the application to the given project structure
 ```sh
-$ joey add hello
+$ joe add heloo
+# or with autoregister parameter
+$ joey add -a hello
 ```
 
 Joey will add the following files in a separate folder
@@ -42,17 +45,17 @@ Joey will add the following files in a separate folder
     └── routes.py
 ```
 
-And register your app and route in project settings (`settings/common.py`)
-```py
-APPLICATIONS: _typing.List[str] = [
-    'hello',
-    # joey_app_autoregister_flag; PLEASE DO NOT DELETE THIS LINE
-]
-ROUTES: _typing.Dict[str, dict] = {
-    'hello': {'prefix': '/hello', 'tags': ['hello']},
-    # joey_route_autoregister_flag; PLEASE DO NOT DELETE THIS LINE
-}
+If you use `-a` flag then **joey** automatic register your app and route in project settings file
+```yaml
+APPLICATIONS:
+- hello
+ROUTES:
+  hello:
+    prefix: /hello
+    tags:
+    - hello
 ```
+otherwise manually edit `settings/common.yml` file.
 
 Now implement model in file  `hello/models.py`
 ```py
@@ -85,7 +88,7 @@ async def item(id: int) -> Item:
 ```
 
 
-Next step -- create a database, then migrate it and add a couple of elements
+Next step - create a database, then migrate it and add a couple of elements
 ```sh
 $ joey revise 'init database'
 $ joey migrate

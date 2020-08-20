@@ -2,6 +2,7 @@ from pathlib import Path
 import subprocess
 import argparse
 import uuid
+import yaml
 import sys
 
 from mako.exceptions import RichTraceback
@@ -49,41 +50,24 @@ def copy_directory_structure(src, dst, context):
             f.write(text)
 
 
-def register_app(name, config_file):
-    route_flag_name = '# joey_route_autoregister_flag'
-    app_flag_name = '# joey_app_autoregister_flag'
-    application_index, routes_index = None, None
-    app_tab, route_tab = '', ''
+def _register_app(name, config_file):
+    try:
+        config = yaml.load(config_file.open(), Loader=yaml.Loader)
+        applications = config['APPLICATIONS']
+        routes = config['ROUTES']
 
-    to_pretty_route = lambda name, tab: tab + f"'{name}': " + "{'prefix': " + f"'/{name}', 'tags': ['{name}']" + '},\n'
-    to_pretty_app = lambda name, tab: f"{tab}'{name}',\n"
-    generate_tabs = lambda tab_size: ' ' * tab_size if tab_size > 0 else ' ' * 4
-
-    config_data = config_file.open().readlines()
-
-    for index, line in enumerate(config_data):
-        if app_flag_name in line and not application_index:
-            application_index = index
-            app_tab = generate_tabs(line.find(app_flag_name))
-        if route_flag_name in line and not routes_index:
-            routes_index = index
-            route_tab = generate_tabs(line.find(route_flag_name))
-
-    if application_index and routes_index:
-        route_text = to_pretty_route(name, route_tab)
-        app_text = to_pretty_app(name, app_tab)
-        if application_index < routes_index:
-            config_data.insert(application_index, app_text)
-            config_data.insert(routes_index + 1, route_text)
-        else:
-            config_data.insert(routes_index, route_text)
-            config_data.insert(application_index + 1, app_text)
+        applications.append(name)
+        routes[name] = {'prefix': f'/{name}', 'tags': [name]}
 
         with config_file.open('w') as f:
-            result = ''.join(config_data)
-            f.write(result)
-
+            yaml.dump(config, f)
         print(f'Autoregister application and route in `{config_file}`')
+    except KeyError as e:
+        print('Invalid file format: key %s does not exist' % e.args)
+    except (TypeError, AttributeError) as e:
+        print('Invalid file format')
+    except Exception as e:
+        print(getattr(e, 'message', repr(e)))
 
 
 def app_init(name=None):
@@ -102,15 +86,19 @@ def app_init(name=None):
 
 def app_add(name, autoregister=False):
     app_directory = Path(name)
-    templates_dir = Path(__file__).parent / 'templates' / 'app'
 
+    if app_directory.exists():
+        print(f'Application folder with name `{name}` already exist')
+        return
+
+    templates_dir = Path(__file__).parent / 'templates' / 'app'
     print('Start application creation')
     copy_directory_structure(templates_dir, app_directory, {})
 
     if autoregister:
-        config_file = Path('.') / 'settings' / 'common.py'
+        config_file = Path('.') / 'settings' / 'common.yml'
         if config_file.exists():
-            register_app(name, config_file)
+            _register_app(name, config_file)
 
     print(f'Application `{name}` successfully added')
 
