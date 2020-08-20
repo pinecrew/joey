@@ -57,7 +57,7 @@ def _register_app(name, config_file):
         routes = config['ROUTES']
 
         applications.append(name)
-        routes.append({name: {'prefix': f'/{name}', 'tags': [name]}})
+        routes[name] = {'prefix': f'/{name}', 'tags': [name]}
 
         with config_file.open('w') as f:
             yaml.dump(config, f)
