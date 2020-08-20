@@ -56,6 +56,10 @@ def _register_app(name, config_file):
         applications = config['APPLICATIONS']
         routes = config['ROUTES']
 
+        if name in applications or name in routes:
+            print(f'Application or route with name `{name}` already exist')
+            return
+
         applications.append(name)
         routes[name] = {'prefix': f'/{name}', 'tags': [name]}
 
@@ -85,7 +89,11 @@ def app_add(name, autoregister=False):
     templates_dir = Path(__file__).parent / 'templates' / 'app'
 
     print('Start application creation')
-    copy_directory_structure(templates_dir, app_directory, {})
+    if not app_directory.exists():
+        copy_directory_structure(templates_dir, app_directory, {})
+    else:
+        print(f'Application folder with name `{name}` already exist')
+        return
 
     if autoregister:
         config_file = Path('.') / 'settings' / 'common.yml'
