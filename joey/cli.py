@@ -51,40 +51,19 @@ def copy_directory_structure(src, dst, context):
 
 
 def _register_app(name, config_file):
-    app_label, route_label = 'APPLICATIONS', 'ROUTES'
-    config = yaml.load(config_file.open(), Loader=yaml.Loader)
+    try:
+        config = yaml.load(config_file.open(), Loader=yaml.Loader)
+        applications = config['APPLICATIONS']
+        routes = config['ROUTES']
 
-    success_status = True
+        applications.append(name)
+        routes.append({name: {'prefix': f'/{name}', 'tags': [name]}})
 
-    if app_label in config:
-        if isinstance(config[app_label], list):
-            config[app_label].append(name)
-        else:
-            print(f'Section `{app_label}` format is unsupported')
-            success_status = False
-    else:
-        print(f'Section {app_label} not found')
-        success_status = False
-
-    if route_label in config:
-        if isinstance(config[route_label], list):
-            config[route_label].append({
-                name: {'prefix': f'/{name}', 'tags': [name]}
-            })
-        else:
-            print(f'Section `{route_label}` format is unsupported')
-            success_status = False
-    else:
-        print(f'Section {route_label} not found')
-        success_status = False
-
-    with config_file.open('w') as f:
-        yaml.dump(config, f)
-
-    if success_status:
+        with config_file.open('w') as f:
+            yaml.dump(config, f)
         print(f'Autoregister application and route in `{config_file}`')
-    else:
-        print(f'Problem with application autoregister. Please check `{config_file}`')
+    except (KeyError, AttributeError) as e:
+        print(getattr(e, 'message', repr(e)))
 
 
 def app_init(name=None):
