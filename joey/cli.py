@@ -62,7 +62,11 @@ def _register_app(name, config_file):
         with config_file.open('w') as f:
             yaml.dump(config, f)
         print(f'Autoregister application and route in `{config_file}`')
-    except (KeyError, AttributeError) as e:
+    except KeyError as e:
+        print('Invalid file format: key %s does not exist' % e.args)
+    except (TypeError, AttributeError) as e:
+        print('Invalid file format')
+    except Exception as e:
         print(getattr(e, 'message', repr(e)))
 
 
