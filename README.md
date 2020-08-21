@@ -8,8 +8,10 @@ Async web framework on top of [fastapi](https://pypi.org/project/fastapi/) and [
 # How to start
 Let's create demo project
 ```sh
-$ joey init demo-project
-# or create in current folder
+$ mkdir demo-project
+$ cd demo-project
+$ pipenv install joey
+$ pipenv shell
 $ joey init 
 ```
 
