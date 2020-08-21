@@ -33,7 +33,7 @@ Joey will create the following project structure
 
 Let's add the application to the given project structure
 ```sh
-$ joe add heloo
+$ joey add hello
 # or with autoregister parameter
 $ joey add -a hello
 ```
