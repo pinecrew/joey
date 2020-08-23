@@ -9,11 +9,10 @@ def variables(module):
 
 class Settings(BaseSettings):
     PROJECT_NAME: str
-    SECRET_KEY: str
-    COOKIE_SECRET: str
     SQLALCHEMY_DATABASE_URI: str
     APPLICATIONS: List[str]
     ROUTES: Dict[str, dict]
+    MIDDLEWARE: Dict[str, dict]
 
 
 try:
