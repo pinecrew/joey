@@ -3,6 +3,7 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path
+from functools import wraps
 
 import click
 
@@ -12,23 +13,31 @@ logger = logging.getLogger('cli')
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
 handler.setLevel(logging.DEBUG)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
+def verbose(func):
+    @wraps(func)
+    def wrapper(verbose, *args, **kwargs):
+        if verbose:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
+        return func(*args, **kwargs)
+
+    return click.option('--verbose', '-v', is_flag=True, default=False, help='Verbose output')(wrapper)
+
+
 @click.group()
-@click.option('--verbose', '-v', is_flag=True, default=False)
-def cli(verbose: bool):
+@verbose
+def cli():
     '''Async web framework on top of fastapi and orm'''
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+    pass
 
 
 @cli.command()
 @click.argument('name', required=False)
+@verbose
 def init(name=None):
     '''Create project skeleton'''
     app_directory = Path(name) if name else Path('.')
@@ -47,6 +56,7 @@ def init(name=None):
 @cli.command()
 @click.argument('name')
 @click.option('--autoregister', '-a', is_flag=True, default=False, help='Autoregister application')
+@verbose
 def add(name, autoregister):
     '''Add application to current project'''
     app_directory = Path(name)
@@ -68,6 +78,7 @@ def add(name, autoregister):
 
 
 @cli.command()
+@verbose
 def run():
     '''Run developer server'''
     try:
@@ -80,12 +91,14 @@ def run():
 
 @cli.command()
 @click.argument('label', required=False)
+@verbose
 def revise(label='auto'):
     '''Create migration'''
     subprocess.call(['alembic', 'revision', '-m', label, '--autogenerate'])
 
 
 @cli.command()
+@verbose
 def migrate():
     '''Apply migration'''
     subprocess.call(['alembic', 'upgrade', 'head'])
