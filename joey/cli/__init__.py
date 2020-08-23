@@ -1,6 +1,6 @@
 from pathlib import Path
 import subprocess
-import argparse
+import click
 import uuid
 import yaml
 import sys
@@ -70,7 +70,16 @@ def _register_app(name, config_file):
         print(getattr(e, 'message', repr(e)))
 
 
-def app_init(name=None):
+@click.group()
+def cli():
+    '''Async web framework on top of fastapi and orm'''
+    pass
+
+
+@cli.command()
+@click.argument('name', required=False)
+def init(name=None):
+    '''Create project skeleton'''
     app_directory = Path(name) if name else Path('.')
     variables = {
         'app_name': name if name else app_directory.cwd().name,
@@ -84,7 +93,11 @@ def app_init(name=None):
     print('Project `{app_name}` successfully created'.format(**variables))
 
 
-def app_add(name, autoregister=False):
+@cli.command()
+@click.argument('name')
+@click.option('--autoregister', '-a', is_flag=True, default=False, help='Autoregister application')
+def add(name, autoregister):
+    '''Add application to current project'''
     app_directory = Path(name)
 
     if app_directory.exists():
@@ -103,7 +116,9 @@ def app_add(name, autoregister=False):
     print(f'Application `{name}` successfully added')
 
 
-def app_run():
+@cli.command()
+def run():
+    '''Run developer server'''
     try:
         subprocess.call(['uvicorn', '--reload', 'asgi:app'])
     except FileNotFoundError:
@@ -112,42 +127,18 @@ def app_run():
         pass
 
 
-def app_revise(label='auto'):
+@cli.command()
+@click.argument('label', required=False)
+def revise(label='auto'):
+    '''Create migration'''
     subprocess.call(['alembic', 'revision', '-m', label, '--autogenerate'])
 
 
-def app_migrate():
+@cli.command()
+def migrate():
+    '''Apply migration'''
     subprocess.call(['alembic', 'upgrade', 'head'])
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Async web framework on top of fastapi and orm')
-    subparser = parser.add_subparsers()
-
-    p_init = subparser.add_parser('init', help='create project skeleton')
-    p_init.add_argument(dest='name', type=str, help='project name')
-    p_init.set_defaults(func=app_init)
-
-    p_add = subparser.add_parser('add', help='add project application')
-    p_add.add_argument('-a', dest='autoregister', action='store_true', default=False, help='autoregister application')
-    p_add.add_argument(dest='name', type=str, help='application name')
-    p_add.set_defaults(func=app_add)
-
-    p_run = subparser.add_parser('run', help='run developer server')
-    p_run.set_defaults(func=app_run)
-
-    p_revise = subparser.add_parser('revise', help='create migration')
-    p_revise.add_argument(dest='label', type=str, help='migration label')
-    p_revise.set_defaults(func=app_revise)
-
-    p_migrate = subparser.add_parser('migrate', help='apply migration')
-    p_migrate.set_defaults(func=app_migrate)
-
-    option = parser.parse_args(argv)
-    if hasattr(option, 'func'):
-        # TODO: rewrite this shitcode
-        function = option.func
-        option.__dict__.pop('func')
-        function(**option.__dict__)
-    else:
-        parser.print_help()
+    cli(args=argv)

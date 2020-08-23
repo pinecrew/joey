@@ -30,7 +30,6 @@ setup(
     ],
     keywords="joey web framework orm fastapi",
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
-    package_data={'': ['templates/*']},
     python_requires=">=3.8, <4",
     install_requires=["alembic==1.4.2", "fastapi==0.61.0", "orm==0.1.5", "pytz==2020.1", "mako==1.1.3", "pyyaml==5.3.1"],
     extras_require={"dev": ["black", "pylint",]},
