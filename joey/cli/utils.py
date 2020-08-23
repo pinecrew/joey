@@ -60,7 +60,7 @@ def register_app(name: str, config_file: Path):
 
         with config_file.open('w') as f:
             yaml.dump(config, f)
-        logger.info(f'Autoregister application and route in `{config_file}`')
+        logger.info(f'Autoregister application and routes in `{config_file}`')
     except KeyError as e:
         logger.error('Invalid file format: key %s does not exist' % e.args)
     except (TypeError, AttributeError) as e:
