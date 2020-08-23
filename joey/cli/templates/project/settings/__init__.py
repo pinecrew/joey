@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     SQLALCHEMY_DATABASE_URI: str
     APPLICATIONS: List[str]
     ROUTES: Dict[str, dict]
+    MIDDLEWARE: Dict[str, dict]
 
 
 try:
