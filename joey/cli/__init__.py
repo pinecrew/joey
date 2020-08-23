@@ -1,16 +1,30 @@
-from pathlib import Path
+import logging
 import subprocess
-import click
-import uuid
 import sys
+import uuid
+from pathlib import Path
+
+import click
 
 from .utils import copy_directory_structure, register_app
 
+logger = logging.getLogger('cli')
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 
 @click.group()
-def cli():
+@click.option('--verbose', '-v', is_flag=True, default=False)
+def cli(verbose: bool):
     '''Async web framework on top of fastapi and orm'''
-    pass
+    if verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
 
 @cli.command()
@@ -25,9 +39,9 @@ def init(name=None):
     }
     templates_dir = Path(__file__).parent / 'templates' / 'project'
 
-    print('Start project creation')
+    logger.debug('Start project creation')
     copy_directory_structure(templates_dir, app_directory, variables)
-    print('Project `{app_name}` successfully created'.format(**variables))
+    logger.info('Project `{app_name}` successfully created'.format(**variables))
 
 
 @cli.command()
@@ -38,11 +52,11 @@ def add(name, autoregister):
     app_directory = Path(name)
 
     if app_directory.exists():
-        print(f'Application folder with name `{name}` already exist')
+        logger.error(f'Application folder with name `{name}` already exist')
         return
 
     templates_dir = Path(__file__).parent / 'templates' / 'app'
-    print('Start application creation')
+    logger.debug('Start application creation')
     copy_directory_structure(templates_dir, app_directory, {})
 
     if autoregister:
@@ -50,7 +64,7 @@ def add(name, autoregister):
         if config_file.exists():
             register_app(name, config_file)
 
-    print(f'Application `{name}` successfully added')
+    logger.info(f'Application `{name}` successfully added')
 
 
 @cli.command()
@@ -59,7 +73,7 @@ def run():
     try:
         subprocess.call(['uvicorn', '--reload', 'asgi:app'])
     except FileNotFoundError:
-        print('Uvicorn is not installed. Run asgi:app with your favorite async server.')
+        logger.error('Uvicorn is not installed. Run asgi:app with your favorite async server.')
     except KeyboardInterrupt:
         pass
 

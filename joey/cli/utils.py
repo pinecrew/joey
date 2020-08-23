@@ -1,9 +1,11 @@
 from pathlib import Path
+import logging
 
 import yaml
 from mako.exceptions import RichTraceback
 from mako.template import Template
 
+logger = logging.getLogger('cli')
 
 def _render(text: str, **kwargs) -> str:
     if kwargs:
@@ -12,10 +14,11 @@ def _render(text: str, **kwargs) -> str:
             return template.render(**kwargs)
         except:
             traceback = RichTraceback()
-            print(f'[error]: template rendering error')
+            errors = ['Template rendering error']
             for (filename, lineno, function, line) in traceback.traceback:
-                print(f'  file {filename}, line {lineno}, in {function}\n    {line}')
-            print(f'  {str(traceback.error.__class__.__name__)}: {traceback.error}')
+                errors.append(f'  file {filename}, line {lineno}, in {function}\n    {line}')
+            errors.append(f'  {str(traceback.error.__class__.__name__)}: {traceback.error}')
+            logger.error('\n'.join(errors))
             exit(-1)
     return text
 
@@ -41,7 +44,7 @@ def copy_directory_structure(src: Path, dst: Path, context: dict):
         filepath = dst / path.relative_to(src)
         filepath.parent.mkdir(parents=True, exist_ok=True)
 
-        print(f' - {filepath}')
+        logger.debug(f' - {filepath}')
         with filepath.open('w') as f:
             f.write(text)
 
@@ -57,10 +60,10 @@ def register_app(name: str, config_file: Path):
 
         with config_file.open('w') as f:
             yaml.dump(config, f)
-        print(f'Autoregister application and route in `{config_file}`')
+        logger.info(f'Autoregister application and route in `{config_file}`')
     except KeyError as e:
-        print('Invalid file format: key %s does not exist' % e.args)
+        logger.error('Invalid file format: key %s does not exist' % e.args)
     except (TypeError, AttributeError) as e:
-        print('Invalid file format')
+        logger.error('Invalid file format')
     except Exception as e:
-        print(getattr(e, 'message', repr(e)))
+        logger.error(getattr(e, 'message', repr(e)))
