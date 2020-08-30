@@ -5,19 +5,13 @@ from starlette.datastructures import MutableHeaders, Secret
 from starlette.requests import HTTPConnection
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-try:
-    import jwt
-    from cryptography.fernet import Fernet
-except ImportError as e:
-    print('PyJWT and cryptography are required. Install them or joey[sessions].')
-    raise e
-
+from .backend.base import BaseSessionBackend
 
 class SessionMiddleware:
     def __init__(
         self,
         app: ASGIApp,
-        secret_key: typing.Union[str, Secret],
+        backend: typing.Optional[BaseSessionBackend],
         session_cookie: str = 'session',
         max_age: int = datetime.timedelta(weeks=2).total_seconds(),  # 14 days, in seconds
         same_site: str = 'lax',
@@ -25,29 +19,13 @@ class SessionMiddleware:
     ) -> None:
         self.app = app
         self.session_cookie = session_cookie
-        self.secret_key = secret_key
+        self.backend = backend if backend else BaseSessionBackend()
         self.max_age = max_age
         self.security_flags = 'httponly; samesite=' + same_site
         if https_only:  # Secure flag can be used with HTTPS only
             self.security_flags += '; secure'
 
-    def encode(self, session: dict) -> str:
-        f = Fernet(self.secret_key)
-        return f.encrypt(
-            jwt.encode(
-                {'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=self.max_age), **session},
-                secret=self.secret_key,
-                algorithms=['HS256'],
-            ).encode()
-        ).hex
 
-    def decode(self, data: str) -> dict:
-        try:
-            f = Fernet(self.secret_key)
-            data = f.decrypt(bytes.fromhex(data))
-            return jwt.decode(data, self.secret_key, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            return {}
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope['type'] not in ('http', 'websocket'):  # pragma: no cover
@@ -59,7 +37,7 @@ class SessionMiddleware:
 
         session_data = connection.cookies.get(self.session_cookie, {})
         if session_data:
-            session_data = self.decode(session_data)
+            session_data = self.backend.decode(session_data)
             if session_data:
                 initial_session_was_empty = False
         scope['session'] = session_data
@@ -71,7 +49,7 @@ class SessionMiddleware:
                     headers = MutableHeaders(scope=message)
                     header_value = '%s=%s; path=/; Max-Age=%d; %s' % (
                         self.session_cookie,
-                        self.encode(scope['session']),
+                        self.backend.encode(scope['session']),
                         self.max_age,
                         self.security_flags,
                     )
