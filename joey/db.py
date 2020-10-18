@@ -40,6 +40,8 @@ class BaseMetaclass(ModelMetaclass):
 class Model(orm.Model, metaclass=BaseMetaclass):
     __abstract__ = True
 
+    id = orm.Integer(primary_key=True)
+
     DoesNotExist = NoMatch
     MultipleObjectsReturned = MultipleMatches
 
