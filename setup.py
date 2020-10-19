@@ -40,7 +40,7 @@ setup(
         "click==7.1.2",
         "pyyaml==5.3.1",
     ],
-    extras_require={"dev": ["black==19.10b0", "pylint",], "sessions": ["pyjwt==1.7.1", "cryptography==3.0"]},
+    extras_require={"dev": ["black==19.10b0", "pylint", "pytest", "aiosqlite"], "sessions": ["pyjwt==1.7.1", "cryptography==3.0"]},
     entry_points={'console_scripts': ['joey=joey.cli:main'],},
     dependency_links=[],
     include_package_data=True,

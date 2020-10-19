@@ -90,9 +90,9 @@ def run():
 
 
 @cli.command()
-@click.argument('label', required=False)
+@click.argument('label', required=False, default='auto')
 @verbose
-def revise(label='auto'):
+def revise(label):
     '''Create migration'''
     subprocess.call(['alembic', 'revision', '-m', label, '--autogenerate'])
 

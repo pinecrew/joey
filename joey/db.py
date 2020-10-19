@@ -40,17 +40,23 @@ class BaseMetaclass(ModelMetaclass):
 class Model(orm.Model, metaclass=BaseMetaclass):
     __abstract__ = True
 
+    id = orm.Integer(primary_key=True)
+
     DoesNotExist = NoMatch
     MultipleObjectsReturned = MultipleMatches
 
 
+class DB:
+    def __init__(self, settings):
+        import databases
+        import sqlalchemy
+
+        self.database = databases.Database(settings.SQLALCHEMY_DATABASE_URI)
+        self.metadata = sqlalchemy.MetaData()
+        self.engine = sqlalchemy.create_engine(str(self.database.url))
+
+        Model.__metadata__ = self.metadata
+        Model.__database__ = self.database
+
 def init(settings):
-    import databases
-    import sqlalchemy
-
-    database = databases.Database(settings.SQLALCHEMY_DATABASE_URI)
-    metadata = sqlalchemy.MetaData()
-    engine = sqlalchemy.create_engine(str(database.url))
-
-    Model.__metadata__ = metadata
-    Model.__database__ = database
+    return DB(settings)
