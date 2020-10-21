@@ -13,7 +13,11 @@ class NestedGetterDict(GetterDict):
 
 
 class SerializerMetaclass(ModelMetaclass):
-    def __call__(cls, obj):
+    def __call__(cls, obj=None, **kwargs):
+        if obj is None:
+            return super(SerializerMetaclass, cls).__call__(**kwargs)
+        if isinstance(obj, dict):
+            return cls.parse_obj(obj)
         return cls.from_orm(obj)
 
 
