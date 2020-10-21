@@ -25,3 +25,8 @@ class Serializer(BaseModel, metaclass=ModelMetaclass):
     class Config:
         orm_mode = True
         getter_dict = NestedGetterDict
+
+class ModelSerializer(Serializer):
+
+    def create(self):
+        self.Meta.model.objects.create(**self.dict())
