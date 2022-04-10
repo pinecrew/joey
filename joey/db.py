@@ -35,8 +35,8 @@ class ModelMetaclass(ModelMeta):
             # collect fields across bases
             fields = {}
             for base in bases:
-                fields |= getattr(base, "fields", {})
-            fields |= attrs.get("fields", {})
+                fields.update(getattr(base, "fields", {}))
+            fields.update(attrs.get("fields", {}))
             attrs["fields"] = fields
 
             # set registry if it is not explicitly set
