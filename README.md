@@ -62,8 +62,10 @@ otherwise manually edit `settings/common.yml` file.
 Now implement model in file  `hello/models.py`
 ```py
 class Item(Model):
-    id = orm.Integer(primary_key=True)
-    text = orm.Text()
+    fields = {
+        "id": orm.Integer(primary_key=True),
+        "text": orm.Text(),
+    }
 ```
 
 Implement a simple route in `hello/routes.py`, than can access to database
