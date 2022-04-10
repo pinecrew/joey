@@ -13,7 +13,7 @@ sys.path += ['.']
 from joey.db import Model, init
 from settings import settings
 init(settings)
-target_metadata = Model.__metadata__
+target_metadata = Model.registry.metadata
 
 # import all models to fill metadata
 for app in settings.APPLICATIONS:

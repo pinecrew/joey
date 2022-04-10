@@ -2,46 +2,36 @@ import re
 import typing
 
 import orm
-from orm.models import ModelMetaclass
+from orm.models import ModelMeta
 from orm.exceptions import MultipleMatches, NoMatch
 
 
-re_camel_case = re.compile(r'(((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$)))')
+class ModelMetaclass(ModelMeta):
+    def __new__(cls, name, bases, attrs):
+        model_class = type.__new__(cls, name, bases, attrs)
+
+        if attrs.get("abstract"):
+            return model_class
+
+        if model_class.registry:
+            model_class.database = model_class.registry.database
+            model_class.registry.models[name] = model_class
+
+            if "tablename" not in attrs:
+                setattr(model_class, "tablename", name.lower())
+
+        for name, field in model_class.fields.items():
+            setattr(field, "registry", model_class.registry)
+            if field.primary_key:
+                model_class.pkname = name
+
+        model_class.build_table()
+
+        return model_class
 
 
-def capital_case_to_snake_case(value: str) -> str:
-    return re_camel_case.sub(r'_\1', value).strip('_').lower()
-
-
-def find_attr(attr: str, bases: typing.Sequence[type]) -> typing.Optional[typing.Any]:
-    for base in bases:
-        if hasattr(base, attr):
-            return getattr(base, attr)
-    return None
-
-
-class BaseMetaclass(ModelMetaclass):
-    def __new__(cls: type, name: str, bases: typing.Sequence[type], attrs: dict) -> type:
-
-        for attr in ['__metadata__', '__database__']:
-            if attr not in attrs:
-                attrs[attr] = find_attr(attr, bases)
-
-        if '__tablename__' not in attrs:
-            attrs['__tablename__'] = capital_case_to_snake_case(name) + 's'
-
-        new_model = super(BaseMetaclass, cls).__new__(  # type: ignore
-            cls, name, bases, attrs
-        )
-
-        return new_model
-
-
-class Model(orm.Model, metaclass=BaseMetaclass):
-    __abstract__ = True
-
-    id = orm.Integer(primary_key=True)
-
+class Model(orm.Model, metaclass=ModelMetaclass):
+    abstract = True
     DoesNotExist = NoMatch
     MultipleObjectsReturned = MultipleMatches
 
@@ -49,14 +39,11 @@ class Model(orm.Model, metaclass=BaseMetaclass):
 class DB:
     def __init__(self, settings):
         import databases
-        import sqlalchemy
 
         self.database = databases.Database(settings.SQLALCHEMY_DATABASE_URI)
-        self.metadata = sqlalchemy.MetaData()
-        self.engine = sqlalchemy.create_engine(str(self.database.url))
+        self.models = orm.ModelRegistry(database=self.database)
 
-        Model.__metadata__ = self.metadata
-        Model.__database__ = self.database
+        Model.registry = self.models
 
 def init(settings):
     return DB(settings)
