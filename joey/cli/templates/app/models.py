@@ -1,2 +1,3 @@
-from joey.db import Model
 import orm
+
+from joey.db import Model

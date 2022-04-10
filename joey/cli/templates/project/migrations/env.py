@@ -9,9 +9,11 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # add parent dir to python path for proper imports
-sys.path += ['.']
-from joey.db import Model, init
+sys.path += ["."]
 from settings import settings
+
+from joey.db import Model, init
+
 init(settings)
 target_metadata = Model.registry.metadata
 
@@ -54,7 +56,9 @@ def run_migrations_online():
 
     """
     connectable = engine_from_config(
-        {"sqlalchemy.url": settings.SQLALCHEMY_DATABASE_URI}, prefix="sqlalchemy.", poolclass=pool.NullPool,
+        {"sqlalchemy.url": settings.SQLALCHEMY_DATABASE_URI},
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:

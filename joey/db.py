@@ -2,8 +2,8 @@ import re
 import typing
 
 import orm
-from orm.models import ModelMeta
 from orm.exceptions import MultipleMatches, NoMatch
+from orm.models import ModelMeta
 
 
 class ModelMetaclass(ModelMeta):
@@ -44,6 +44,7 @@ class DB:
         self.models = orm.ModelRegistry(database=self.database)
 
         Model.registry = self.models
+
 
 def init(settings):
     return DB(settings)

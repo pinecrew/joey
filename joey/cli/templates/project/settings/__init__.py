@@ -1,10 +1,10 @@
-from typing import List, Dict
+from typing import Dict, List
 
 from pydantic import BaseSettings
 
 
 def variables(module):
-    return {k: v for k, v in vars(dev).items() if not k.startswith('_') and k.isupper()}
+    return {k: v for k, v in vars(dev).items() if not k.startswith("_") and k.isupper()}
 
 
 class Settings(BaseSettings):

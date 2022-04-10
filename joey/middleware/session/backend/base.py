@@ -8,4 +8,3 @@ class BaseSessionBackend:
 
     def decode(self, data: str) -> dict:
         return json.loads(base64.b64decode(data.encode()))
-
