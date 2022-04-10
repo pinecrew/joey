@@ -6,31 +6,56 @@ from orm.exceptions import MultipleMatches, NoMatch
 from orm.models import ModelMeta
 
 
+def _find_registry_in_bases(bases):
+    for base in bases:
+        if registry := getattr(base, "registry", None):
+            return registry
+    return None
+
+
 class ModelMetaclass(ModelMeta):
+    """
+    Add abstract models support to encode/orm
+
+    Abstract models should define `abstract` attribute:
+
+    class Abstract:
+        abstract = True
+        ...
+    """
+
     def __new__(cls, name, bases, attrs):
-        model_class = type.__new__(cls, name, bases, attrs)
-
         if attrs.get("abstract"):
-            return model_class
+            # We avoid adding abstract model to model registry
+            registry = attrs.pop("registry", _find_registry_in_bases(bases))
+            model_class = super().__new__(cls, name, bases, attrs)
+            # add registry back to pass it to inherited models
+            setattr(model_class, "registry", registry)
+        else:
+            # collect fields across bases
+            fields = {}
+            for base in bases:
+                fields |= getattr(base, "fields", {})
+            fields |= attrs.get("fields", {})
+            attrs["fields"] = fields
 
-        if model_class.registry:
-            model_class.database = model_class.registry.database
-            model_class.registry.models[name] = model_class
+            # set registry if it is not explicitly set
+            if not attrs.get("registry"):
+                attrs["registry"] = _find_registry_in_bases(bases)
 
-            if "tablename" not in attrs:
-                setattr(model_class, "tablename", name.lower())
-
-        for name, field in model_class.fields.items():
-            setattr(field, "registry", model_class.registry)
-            if field.primary_key:
-                model_class.pkname = name
-
-        model_class.build_table()
-
+            model_class = super().__new__(cls, name, bases, attrs)
         return model_class
 
 
 class Model(orm.Model, metaclass=ModelMetaclass):
+    """
+    Base model for joey models
+
+    Purposes:
+    - no need to set registry for each model
+    - automatic migrations with alembic
+    """
+
     abstract = True
     DoesNotExist = NoMatch
     MultipleObjectsReturned = MultipleMatches
