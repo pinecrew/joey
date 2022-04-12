@@ -12,7 +12,7 @@ $ mkdir demo-project
 $ cd demo-project
 $ pipenv install joey
 $ pipenv shell
-$ joey init 
+$ joey init
 ```
 
 Joey will create the following project structure
@@ -74,20 +74,20 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 
-from hello.models import Item as ItemDB
+from hello.models import Item
 
 
-class Item(BaseModel):
+class ItemResponse(BaseModel):
     text: str
 
 
 router = APIRouter()
 
-@router.post('/{id}', response_model=Item)
-async def item(id: int) -> Item:
+@router.get('/{id}', response_model=ItemResponse)
+async def item(id: int) -> ItemResponse:
     try:
-        return await ItemDB.objects.get(id=id)
-    except ItemDB.DoesNotExist:
+        return await Item.objects.get(id=id)
+    except Item.DoesNotExist:
         raise HTTPException(status_code=404, detail='Item not found')
 ```
 
