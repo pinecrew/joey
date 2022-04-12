@@ -61,15 +61,10 @@ class Model(orm.Model, metaclass=ModelMetaclass):
     MultipleObjectsReturned = MultipleMatches
 
 
-class DB:
-    def __init__(self, settings):
-        import databases
-
-        self.database = databases.Database(settings.SQLALCHEMY_DATABASE_URI)
-        self.models = orm.ModelRegistry(database=self.database)
-
-        Model.registry = self.models
-
-
 def init(settings):
-    return DB(settings)
+    import databases
+
+    database = databases.Database(settings.SQLALCHEMY_DATABASE_URI)
+    models = orm.ModelRegistry(database=database)
+
+    Model.registry = models

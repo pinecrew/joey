@@ -10,13 +10,13 @@ import tests.settings as settings
 
 from joey import db
 
-db_context = db.init(settings)
+db.init(settings)
 
 @pytest.fixture(autouse=True, scope="module")
 def create_test_database():
-    async_adapter(db_context.models.create_all)()
+    async_adapter(db.Model.registry.create_all)()
     yield
-    async_adapter(db_context.models.drop_all)()
+    async_adapter(db.Model.registry.drop_all)()
 
 
 def async_adapter(wrapped_func):
